@@ -1,4 +1,5 @@
 # Silverstripe Headless
+Tutorial: [Headless Silverstripe with Next.JS](https://olivernorden.se/blog/headless-silverstripe-with-next-js)
 Tutorial: [Headless Silverstripe with Nuxt.JS](https://olivernorden.se/blog/headless-silverstripe-with-nuxt)
 
 ## Set up locally
