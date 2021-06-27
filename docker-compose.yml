@@ -1,0 +1,72 @@
+### myapp/docker-compose.yml ###
+version: '3'
+services: 
+  nginx: 
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports: 
+     - '${APP_PORT:-80}:80'
+    depends_on:
+      - nuxt
+      - next
+      - silverstripe
+    environment: 
+      NGINX_UPSTREAM: '${NGINX_UPSTREAM:-next}'
+
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
+  node: 
+    image: node:12
+    user: ${CURRENT_UID:-1000}:${CURRENT_GID:-1000}
+    volumes:
+      - ./:/project
+    working_dir: /project
+  next:
+    image: node:12
+    restart: always
+    command: npm run dev
+    working_dir: /usr/src/app
+    volumes: 
+        - ./next:/usr/src/app
+  nuxt:
+    image: node:12
+    restart: always
+    command: npm run dev
+    working_dir: /usr/src/app
+    volumes: 
+        - ./nuxt:/usr/src/app
+    environment:
+        HOST: nuxt
+        BASE_URL: http://nuxt:3000/
+        API_TARGET: http://silverstripe:80/
+        CHOKIDAR_USEPOLLING: 1
+  silverstripe:
+    build: .
+    user: ${CURRENT_UID:-1000}:${CURRENT_GID:-1000}
+    volumes: 
+      - ./mysilverstripeapp:/var/www/html
+    depends_on: 
+      - mydb
+    environment: 
+      DOCUMENT_ROOT: /var/www/html/public
+      
+      # Regular Silverstripe CMS environment variables
+      SS_DATABASE_CLASS: MySQLDatabase
+      SS_DATABASE_SERVER: mydb # Should be the same as mysql service name
+      SS_DATABASE_USERNAME: root
+      SS_DATABASE_PASSWORD: mysecretpassword
+      SS_DATABASE_NAME: SS_docker-demo
+
+      SS_DEFAULT_ADMIN_USERNAME: admin
+      SS_DEFAULT_ADMIN_PASSWORD: password
+
+      SS_ENVIRONMENT_TYPE: dev
+  mydb:
+    image: mysql:5.7
+    volumes: 
+      - db_data:/var/lib/mysql
+    environment: 
+      MYSQL_ROOT_PASSWORD: mysecretpassword
+
+volumes:
+  db_data:
